@@ -11,8 +11,19 @@ import Foundation
 class FRPCManager: ObservableObject {
     @Published var isRunning = false
     @Published var consoleOutput = ""
+    @Published var configFilePath: String? {
+        didSet {
+            if let path = configFilePath {
+                UserDefaults.standard.set(path, forKey: "frpcConfigPath")
+            }
+        }
+    }
+
     private var process: Process?
-    @Published var configFilePath: String?
+
+    init() {
+        configFilePath = UserDefaults.standard.string(forKey: "frpcConfigPath")
+    }
 
     func selectConfigFile() {
         let openPanel = NSOpenPanel()
@@ -25,6 +36,7 @@ class FRPCManager: ObservableObject {
             configFilePath = openPanel.url?.path
         }
     }
+
 
     func startFRPC() {
         guard let configPath = configFilePath else {
@@ -128,6 +140,24 @@ struct ActionsView: View {
             ScrollView {
                 Text(frpcManager.consoleOutput)
                     .font(.system(.body, design: .monospaced))
+                    .textSelection(.enabled)
+                    .foregroundColor(.primary)
+                    .background(
+                        Text(frpcManager.consoleOutput)
+                            .font(.system(.body, design: .monospaced))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [.blue, .green, .yellow, .red],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .mask(
+                                Text(frpcManager.consoleOutput)
+                                    .font(.system(.body, design: .monospaced))
+                                    .textSelection(.enabled)
+                            )
+                    )
             }
             .frame(height: 300)
             .border(Color.gray, width: 1)
