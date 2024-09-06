@@ -28,6 +28,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
         let menu = NSMenu()
 
+        let showWindow = NSMenuItem(title: "Show Main Window", action: #selector(showMainWindow), keyEquivalent: "")
+        menu.addItem(showWindow)
+
         let statusMenuItem = NSMenuItem(title: "FRPC未运行", action: nil, keyEquivalent: "")
         menu.addItem(statusMenuItem)
 
@@ -45,6 +48,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         }
     }
 
+    @objc private func showMainWindow() {
+        if let window = NSApplication.shared.windows.first(where: { $0.canBecomeKey }) {
+            window.makeKeyAndOrderFront(nil)
+        } else {
+            print("No window found that can become key")
+        }
+    }
+
     @objc private func toggleFRPC() {
         if frpcManager.isRunning {
             frpcManager.stopFRPC()
@@ -59,11 +70,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         }
 
         if let menu = statusItem?.menu {
-            if let statusMenuItem = menu.item(at: 0) {
+            //0 for "show main window"
+            if let statusMenuItem = menu.item(at: 1) {
                 statusMenuItem.title = isRunning ? "FRPC正在运行" : "FRPC未运行"
             }
-
-            if let startStopMenuItem = menu.item(at: 2) {
+            //2 for separator
+            if let startStopMenuItem = menu.item(at: 3) {
                 startStopMenuItem.title = isRunning ? "停止FRPC" : "启动FRPC"
             }
         }
