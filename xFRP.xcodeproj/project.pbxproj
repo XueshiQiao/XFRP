@@ -3,15 +3,25 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 60;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXFileReference section */
 		D4EC7DF52C8B647F00424D1C /* xFRP.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = xFRP.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		D4EC7E0A2C8B6A5900424D1C /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = D4EC7DF42C8B647F00424D1C /* xFRP */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		D4EC7DF72C8B647F00424D1C /* xFRP */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = xFRP; sourceTree = "<group>"; };
+		D4EC7DF72C8B647F00424D1C /* xFRP */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (D4EC7E0A2C8B6A5900424D1C /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = xFRP; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -252,6 +262,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = xFRP/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -279,6 +290,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = xFRP/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
