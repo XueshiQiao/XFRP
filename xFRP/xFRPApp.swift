@@ -18,6 +18,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupMenuBar()
     }
+    
+    func applicationWillTerminate(_ notification: Notification) {
+        if frpcManager.isRunning {
+            print("Stop running frpcManager")
+            frpcManager.stopFRPC()
+        }
+    }
 
     private func setupMenuBar() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
