@@ -12,7 +12,7 @@ class FRPCManager: ObservableObject {
     @Published var isRunning = false
     @Published var consoleOutput = ""
     private var process: Process?
-    private var configFilePath: String?
+    @Published var configFilePath: String?
 
     func selectConfigFile() {
         let openPanel = NSOpenPanel()
@@ -67,15 +67,55 @@ class FRPCManager: ObservableObject {
     }
 }
 
-struct ContentView22: View {
+struct ContentView: View {
     @StateObject private var frpcManager = FRPCManager()
+    @State private var selectedTab = 0
+
+    var body: some View {
+        NavigationView {
+            List {
+                NavigationLink(destination: SettingsView(frpcManager: frpcManager), tag: 0, selection: Binding<Int?>(get: { selectedTab }, set: { selectedTab = $0 ?? 0 })) {
+                    Label("设置", systemImage: "gear")
+                }
+                NavigationLink(destination: ActionsView(frpcManager: frpcManager), tag: 1, selection: Binding<Int?>(get: { selectedTab }, set: { selectedTab = $0 ?? 0 })) {
+                    Label("操作", systemImage: "play.circle")
+                }
+            }
+            .listStyle(SidebarListStyle())
+            .frame(minWidth: 150)
+
+            Text("请在左侧选择一个选项")
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+}
+
+struct SettingsView: View {
+    @ObservedObject var frpcManager: FRPCManager
+
+    var body: some View {
+        Form {
+            Section(header: Text("配置文件")) {
+                HStack {
+                    Text(frpcManager.configFilePath ?? "未选择")
+                        .truncationMode(.middle)
+                    Spacer()
+                    Button("选择") {
+                        frpcManager.selectConfigFile()
+                    }
+                }
+            }
+        }
+        .navigationTitle("设置")
+        .padding()
+    }
+}
+
+struct ActionsView: View {
+    @ObservedObject var frpcManager: FRPCManager
 
     var body: some View {
         VStack {
-            Button("选择配置文件") {
-                frpcManager.selectConfigFile()
-            }
-
             Button(frpcManager.isRunning ? "停止FRPC" : "启动FRPC") {
                 if frpcManager.isRunning {
                     frpcManager.stopFRPC()
@@ -83,6 +123,7 @@ struct ContentView22: View {
                     frpcManager.startFRPC()
                 }
             }
+            .padding()
 
             ScrollView {
                 Text(frpcManager.consoleOutput)
@@ -91,6 +132,14 @@ struct ContentView22: View {
             .frame(height: 300)
             .border(Color.gray, width: 1)
         }
+        .navigationTitle("操作")
         .padding()
+    }
+}
+
+// 预览代码
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
     }
 }
