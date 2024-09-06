@@ -14,7 +14,7 @@ class FRPCManager: ObservableObject {
     @Published var configFilePath: String? {
         didSet {
             if let path = configFilePath {
-                UserDefaults.standard.set(path, forKey: "frpcConfigPath")
+                saveBookmark(for: URL(fileURLWithPath: path))
             }
         }
     }
@@ -22,7 +22,20 @@ class FRPCManager: ObservableObject {
     private var process: Process?
 
     init() {
-        configFilePath = UserDefaults.standard.string(forKey: "frpcConfigPath")
+        
+        // ref: https://github.com/sidmhatre/GetFolderAccessMacOS/blob/master/GetFolderAccessMacOS/Bookmarks.swift
+        if let bookmarkData = UserDefaults.standard.data(forKey: "frpcConfigBookmark") {
+            do {
+                var isStale = false
+                let url = try URL(resolvingBookmarkData: bookmarkData, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &isStale)
+                if !isStale {
+                    _ = url.startAccessingSecurityScopedResource()
+                    configFilePath = url.path
+                }
+            } catch {
+                print("无法解析书签：\(error)")
+            }
+        }
     }
 
     func selectConfigFile() {
@@ -30,13 +43,23 @@ class FRPCManager: ObservableObject {
         openPanel.allowsMultipleSelection = false
         openPanel.canChooseDirectories = false
         openPanel.canChooseFiles = true
-        openPanel.allowedContentTypes = [.yaml, .text,]
+        openPanel.allowedContentTypes = [.yaml, .text]
 
         if openPanel.runModal() == .OK {
-            configFilePath = openPanel.url?.path
+            if let url = openPanel.url {
+                configFilePath = url.path
+            }
         }
     }
 
+    private func saveBookmark(for url: URL) {
+        do {
+            let bookmarkData = try url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
+            UserDefaults.standard.set(bookmarkData, forKey: "frpcConfigBookmark")
+        } catch {
+            print("无法创建书签：\(error)")
+        }
+    }
 
     func startFRPC() {
         guard let configPath = configFilePath else {
@@ -49,7 +72,6 @@ class FRPCManager: ObservableObject {
         process?.executableURL = Bundle.main.url(forResource: "frpc", withExtension: nil)
         // process?.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/frpc")
         process?.arguments = ["-c", configPath]
-
 
         let pipe = Pipe()
         process?.standardOutput = pipe
