@@ -68,7 +68,7 @@ class FRPCManager: ObservableObject {
 }
 
 struct ContentView: View {
-    @StateObject private var frpcManager = FRPCManager()
+    @EnvironmentObject var frpcManager: FRPCManager
     @State private var selectedTab = 0
 
     var body: some View {
