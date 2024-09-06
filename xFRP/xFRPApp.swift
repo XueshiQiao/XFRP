@@ -39,8 +39,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         let startStopMenuItem = NSMenuItem(title: "启动FRPC", action: #selector(toggleFRPC), keyEquivalent: "")
         menu.addItem(startStopMenuItem)
 
-        statusItem?.menu = menu
+        menu.addItem(NSMenuItem.separator())
+        let exitMenuItem = NSMenuItem(title: "Exit", action: #selector(exitApp), keyEquivalent: "q")
+        menu.addItem(exitMenuItem)
 
+        statusItem?.menu = menu
 
         // 在 init() 或其他适当的地方设置订阅
         cancellable = frpcManager.$isRunning.sink { [weak self] isRunning in
@@ -54,6 +57,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
         } else {
             print("No window found that can become key")
         }
+    }
+
+    @objc private func exitApp() {
+        if frpcManager.isRunning {
+            frpcManager.stopFRPC()
+        }
+        NSApplication.shared.terminate(nil)
     }
 
     @objc private func toggleFRPC() {
