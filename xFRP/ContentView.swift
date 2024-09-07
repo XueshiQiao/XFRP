@@ -35,16 +35,25 @@ class FRPCManager: ObservableObject {
         }
     }
 
+    @Published var startOnLogin: Bool {
+        didSet {
+            UserDefaults.standard.set(startOnLogin, forKey: "startOnLogin")
+            AppDelegate.instance.updateLoginItem()
+        }
+    }
+
     private var process: Process?
 
     init() {
+        consoleOutput = "\n"
+        startOnLogin = UserDefaults.standard.bool(forKey: "startOnLogin")
+
         loadBookmark(key: "frpcConfigBookmark") { url in
             self.configFilePath = url.path
         }
         loadBookmark(key: "frpcExecutableBookmark") { url in
             self.executableFilePath = url.path
         }
-        consoleOutput = "\n"
     }
 
     private func loadBookmark(key: String, completion: (URL) -> Void) {
@@ -323,6 +332,9 @@ struct SettingsView: View {
                         frpcManager.selectExecutableFile()
                     }
                 }
+            }
+            Section(header: Text("启动设置")) {
+                Toggle("开机自启动", isOn: $frpcManager.startOnLogin)
             }
         }
         .navigationTitle("设置")

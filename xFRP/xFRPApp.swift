@@ -7,8 +7,11 @@
 import SwiftUI
 import Foundation
 import Combine
+import ServiceManagement
 
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
+    static private(set) var instance: AppDelegate! = nil
+
     private var statusItem: NSStatusItem?
     @Published var frpcManager = FRPCManager()
     // 监听FRPC状态变化
@@ -16,9 +19,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     private var cancellable: Combine.AnyCancellable?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        AppDelegate.instance = self
         setupMenuBar()
     }
-    
+
     func applicationWillTerminate(_ notification: Notification) {
         if frpcManager.isRunning {
             print("Stop running frpcManager")
@@ -95,6 +99,30 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             if let startStopMenuItem = menu.item(at: 3) {
                 startStopMenuItem.title = isRunning ? "停止FRPC" : "启动FRPC"
             }
+        }
+    }
+
+    func updateLoginItem() {
+        _ = Bundle.main.bundleIdentifier ?? ""
+        let appService = SMAppService.mainApp
+
+        do {
+            if frpcManager.startOnLogin {
+                try appService.register()
+            } else {
+                try appService.unregister()
+            }
+        } catch {
+            print("更新登录项失败: \(error.localizedDescription)")
+        }
+    }
+
+    func requestLoginItemPermission() {
+        let appService = SMAppService.mainApp
+        do {
+            try appService.register()
+        } catch {
+            print("请求登录项权限失败: \(error.localizedDescription)")
         }
     }
 }
