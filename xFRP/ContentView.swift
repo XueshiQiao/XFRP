@@ -7,6 +7,9 @@
 
 import SwiftUI
 import Foundation
+import UniformTypeIdentifiers
+import UserNotificationsUI
+import UserNotifications
 
 class FRPCManager: ObservableObject {
     @Published var isRunning = false
@@ -14,7 +17,14 @@ class FRPCManager: ObservableObject {
     @Published var configFilePath: String? {
         didSet {
             if let path = configFilePath {
-                saveBookmark(for: URL(fileURLWithPath: path))
+                saveBookmark(for: URL(fileURLWithPath: path), key: "frpcConfigBookmark")
+            }
+        }
+    }
+    @Published var executableFilePath: String? {
+        didSet {
+            if let path = executableFilePath {
+                saveBookmark(for: URL(fileURLWithPath: path), key: "frpcExecutableBookmark")
             }
         }
     }
@@ -22,15 +32,22 @@ class FRPCManager: ObservableObject {
     private var process: Process?
 
     init() {
-        
-        // ref: https://github.com/sidmhatre/GetFolderAccessMacOS/blob/master/GetFolderAccessMacOS/Bookmarks.swift
-        if let bookmarkData = UserDefaults.standard.data(forKey: "frpcConfigBookmark") {
+        loadBookmark(key: "frpcConfigBookmark") { url in
+            self.configFilePath = url.path
+        }
+        loadBookmark(key: "frpcExecutableBookmark") { url in
+            self.executableFilePath = url.path
+        }
+    }
+
+    private func loadBookmark(key: String, completion: (URL) -> Void) {
+        if let bookmarkData = UserDefaults.standard.data(forKey: key) {
             do {
                 var isStale = false
                 let url = try URL(resolvingBookmarkData: bookmarkData, options: .withSecurityScope, relativeTo: nil, bookmarkDataIsStale: &isStale)
                 if !isStale {
                     _ = url.startAccessingSecurityScopedResource()
-                    configFilePath = url.path
+                    completion(url)
                 }
             } catch {
                 print("无法解析书签：\(error)")
@@ -39,38 +56,50 @@ class FRPCManager: ObservableObject {
     }
 
     func selectConfigFile() {
+        selectFile(contentTypes: [UTType.yaml, UTType.text]) { url in
+            self.configFilePath = url.path
+        }
+    }
+
+    func selectExecutableFile() {
+        selectFile(contentTypes: [UTType.executable]) { url in
+            self.executableFilePath = url.path
+        }
+    }
+
+    private func selectFile(contentTypes: [UTType], completion: @escaping (URL) -> Void) {
         let openPanel = NSOpenPanel()
         openPanel.allowsMultipleSelection = false
         openPanel.canChooseDirectories = false
         openPanel.canChooseFiles = true
-        openPanel.allowedContentTypes = [.yaml, .text]
+        openPanel.allowedContentTypes = contentTypes
 
         if openPanel.runModal() == .OK {
             if let url = openPanel.url {
-                configFilePath = url.path
+                completion(url)
             }
         }
     }
 
-    private func saveBookmark(for url: URL) {
+    private func saveBookmark(for url: URL, key: String) {
         do {
-            let bookmarkData = try url.bookmarkData(options: .withSecurityScope, includingResourceValuesForKeys: nil, relativeTo: nil)
-            UserDefaults.standard.set(bookmarkData, forKey: "frpcConfigBookmark")
+            let bookmarkData = try url.bookmarkData(options: [.withSecurityScope, .securityScopeAllowOnlyReadAccess], includingResourceValuesForKeys: nil, relativeTo: nil)
+            UserDefaults.standard.set(bookmarkData, forKey: key)
         } catch {
             print("无法创建书签：\(error)")
+            consoleOutput += "无法创建书签：\(error.localizedDescription)\n"
         }
     }
 
     func startFRPC() {
-        guard let configPath = configFilePath else {
-            consoleOutput += "请先选择配置文件\n"
+        guard let configPath = configFilePath, let executablePath = executableFilePath else {
+            consoleOutput += "请先选择配置文件和可执行文件\n"
             return
         }
 
         isRunning = true
         process = Process()
-        process?.executableURL = Bundle.main.url(forResource: "frpc", withExtension: nil)
-        // process?.executableURL = URL(fileURLWithPath: "/opt/homebrew/bin/frpc")
+        process?.executableURL = URL(fileURLWithPath: executablePath)
         process?.arguments = ["-c", configPath]
 
         let pipe = Pipe()
@@ -78,6 +107,24 @@ class FRPCManager: ObservableObject {
         process?.standardError = pipe
 
         do {
+            // 检查可执行文件是否存在
+            let fileManager = FileManager.default
+            guard fileManager.fileExists(atPath: executablePath) else {
+                consoleOutput += "启动FRPC失败: 可执行文件不存在\n"
+                isRunning = false
+                showErrorNotification(str: "启动FRPC失败: 可执行文件不存在")
+                return
+            }
+
+            // 检查文件权限
+            guard fileManager.isExecutableFile(atPath: executablePath) else {
+                consoleOutput += "启动FRPC失败: 无法执行所选文件。请确保应用程序有足够的权限来执行此文件。\n"
+                consoleOutput += "您可能需要在系统偏好设置中授予应用程序完全磁盘访问权限。\n"
+                isRunning = false
+                showErrorNotification(str: "启动FRPC失败: 无法执行所选文件。请确保应用程序有足够的权限来执行此文件。您可能需要在系统偏好设置中授予应用程序完全磁盘访问权限。\n")
+                return
+            }
+
             try process?.run()
 
             pipe.fileHandleForReading.readabilityHandler = { handle in
@@ -90,7 +137,12 @@ class FRPCManager: ObservableObject {
             }
         } catch {
             consoleOutput += "启动FRPC失败: \(error.localizedDescription)\n"
+            showErrorNotification(str: error.localizedDescription)
+            if let process = process, !process.isRunning {
+                consoleOutput += "进程未能成功启动，请检查文件路径和权限\n"
+            }
             isRunning = false
+
         }
     }
 
@@ -98,6 +150,36 @@ class FRPCManager: ObservableObject {
         process?.terminate()
         isRunning = false
         consoleOutput += "FRPC已停止\n"
+    }
+
+    func showErrorNotification(str: String) {
+        // 发送本地通知
+        let content = UNMutableNotificationContent()
+        content.title = "FRPC启动失败"
+        content.body = str
+        content.sound = UNNotificationSound.default
+
+        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
+
+        // 请求通知权限
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in
+            if granted {
+                UNUserNotificationCenter.current().add(request) { error in
+                    if let error = error {
+                        print("发送通知失败: \(error.localizedDescription)")
+                    } else {
+                        print("通知已成功发送")
+                    }
+                }
+            } else {
+                print("用户未授予通知权限")
+            }
+        }
+
+        // 在主线程上显示通知
+        DispatchQueue.main.async {
+            NSApp.requestUserAttention(.criticalRequest)
+        }
     }
 }
 
@@ -136,6 +218,16 @@ struct SettingsView: View {
                     Spacer()
                     Button("选择") {
                         frpcManager.selectConfigFile()
+                    }
+                }
+            }
+            Section(header: Text("可执行文件")) {
+                HStack {
+                    Text(frpcManager.executableFilePath ?? "未选择")
+                        .truncationMode(.middle)
+                    Spacer()
+                    Button("选择") {
+                        frpcManager.selectExecutableFile()
                     }
                 }
             }
