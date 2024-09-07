@@ -35,22 +35,19 @@ struct ActionsView: View {
                 }
                 .disabled(!frpcManager.isRunning)
 
-
-
                 Button("pkill frpc") {
                     frpcManager.forceKillFRPC()
                 }
                 .foregroundColor(.red)
-//                .separator()
 
                 Button("Clear logs") {
                     frpcManager.clearLogs()
-                }
+                }.disabled(frpcManager.cleanedConsoleOutput.isEmpty)
             }
 
             ScrollViewReader { scrollView in
                 ScrollView {
-                    Text(frpcManager.cleanedConsoleOutput)
+                    Text(frpcManager.cleanedConsoleOutput.isEmpty ? " " : frpcManager.cleanedConsoleOutput)
                         .font(.system(.body, design: .monospaced))
                         .foregroundStyle(
                             LinearGradient(
@@ -60,12 +57,12 @@ struct ActionsView: View {
                             )
                         )
                         .overlay(
-                            Text(frpcManager.cleanedConsoleOutput)
+                            Text(frpcManager.cleanedConsoleOutput.isEmpty ? " " : frpcManager.cleanedConsoleOutput)
                                 .font(.system(.body, design: .monospaced))
                                 .foregroundColor(Color.black.opacity(0.1))
                                 .textSelection(.enabled)
                         )
-                        .frame(minHeight: 400, alignment: .topLeading)
+                        .frame(minWidth: 0, maxWidth: .infinity, minHeight: 400, alignment: .topLeading)
                         .id("logEnd")
                 }
                 .onChange(of: frpcManager.cleanedConsoleOutput, initial: true, {

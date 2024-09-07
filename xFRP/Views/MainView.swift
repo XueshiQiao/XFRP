@@ -24,7 +24,7 @@ struct MainView: View {
                     .tag(1)
             }
             .listStyle(SidebarListStyle())
-            .frame(minWidth: 200)  // 增加最小宽度
+            .frame(minWidth: 150, idealWidth: 150)
         } detail: {
             NavigationStack {
                 Group {
