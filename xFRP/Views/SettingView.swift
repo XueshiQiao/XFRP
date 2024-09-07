@@ -12,33 +12,33 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section(header: Text("配置文件")) {
+            Section(header: Text("frpc config file")) {
                 HStack {
-                    Text(frpcManager.configFilePath ?? "未选择")
+                    Text(frpcManager.configFilePath ?? "-")
                         .truncationMode(.middle)
                     Spacer()
-                    Button("选择") {
+                    Button("Choose") {
                         frpcManager.selectConfigFile()
                     }
                 }
             }
-            Section(header: Text("可执行文件")) {
+            Section(header: Text("frpc executable file path")) {
                 HStack {
-                    Text(frpcManager.executableFilePath ?? "未选择")
+                    Text(frpcManager.executableFilePath ?? "-")
                         .truncationMode(.middle)
                     Spacer()
-                    Button("选择") {
+                    Button("Choose") {
                         frpcManager.selectExecutableFile()
                     }
                 }
             }
-            Section(header: Text("启动设置")) {
-                Toggle("开机自启动", isOn: $frpcManager.startOnLogin)
-                Toggle("应用启动时自动启动FRPC", isOn: $frpcManager.startOnAppLaunch)
+            Section(header: Text("Startup settings")) {
+                Toggle("Start on login", isOn: $frpcManager.startOnLogin)
+                Toggle("Auto start frpc on app launch", isOn: $frpcManager.startOnAppLaunch)
             }
         }
         .formStyle(GroupedFormStyle())
-        .navigationTitle("设置")
+        .navigationTitle("Settings")
         .padding()
     }
 }

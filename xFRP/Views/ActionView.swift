@@ -26,23 +26,26 @@ struct ActionsView: View {
                 }
                 .padding()
 
-                Button("验证配置") {
+                Button("Verify config file") {
                     frpcManager.verifyConfig()
                 }
 
-                Button("重新加载配置") {
+                Button("Reload config") {
                     frpcManager.reloadConfig()
                 }
                 .disabled(!frpcManager.isRunning)
 
-                Button("清除日志") {
-                    frpcManager.clearLogs()
-                }
 
-                Button("强制终止FRPC") {
+
+                Button("pkill frpc") {
                     frpcManager.forceKillFRPC()
                 }
                 .foregroundColor(.red)
+//                .separator()
+
+                Button("Clear logs") {
+                    frpcManager.clearLogs()
+                }
             }
 
             ScrollViewReader { scrollView in
@@ -73,7 +76,7 @@ struct ActionsView: View {
             .padding(EdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10))
             .border(Color.gray, width: 1)
         }
-        .navigationTitle("操作")
+        .navigationTitle("Actions")
         .padding()
     }
 

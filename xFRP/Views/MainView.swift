@@ -18,9 +18,9 @@ struct MainView: View {
     var body: some View {
         NavigationSplitView {
             List(selection: $selectedTab) {
-                Label("操作", systemImage: "play.circle")
+                Label("Actions", systemImage: "play.circle").font(.headline)
                     .tag(0)
-                Label("设置", systemImage: "gear")
+                Label("Settings", systemImage: "gear").font(.headline)
                     .tag(1)
             }
             .listStyle(SidebarListStyle())
@@ -44,7 +44,6 @@ struct MainView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .navigationSplitViewStyle(.prominentDetail)  // 使用更突出的分割视图样式
     }
 }
 
