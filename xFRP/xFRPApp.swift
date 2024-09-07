@@ -11,7 +11,6 @@ import ServiceManagement
 
 class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     static private(set) var instance: AppDelegate! = nil
-
     private var statusItem: NSStatusItem?
     @Published var frpcManager = FRPCManager()
     // 监听FRPC状态变化
@@ -21,6 +20,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     func applicationDidFinishLaunching(_ notification: Notification) {
         AppDelegate.instance = self
         setupMenuBar()
+
+        // 检查是否需要在应用启动时自动启动FRPC
+        if frpcManager.startOnAppLaunch {
+            frpcManager.startFRPC()
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -114,15 +118,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
             }
         } catch {
             print("更新登录项失败: \(error.localizedDescription)")
-        }
-    }
-
-    func requestLoginItemPermission() {
-        let appService = SMAppService.mainApp
-        do {
-            try appService.register()
-        } catch {
-            print("请求登录项权限失败: \(error.localizedDescription)")
         }
     }
 }

@@ -12,6 +12,7 @@ import UserNotificationsUI
 import UserNotifications
 
 class FRPCManager: ObservableObject {
+
     @Published var isRunning = false
     @Published var consoleOutput = "abc" {
         didSet {
@@ -42,11 +43,18 @@ class FRPCManager: ObservableObject {
         }
     }
 
+    @Published var startOnAppLaunch: Bool {
+        didSet {
+            UserDefaults.standard.set(startOnAppLaunch, forKey: "startOnAppLaunch")
+        }
+    }
+
     private var process: Process?
 
     init() {
         consoleOutput = "\n"
         startOnLogin = UserDefaults.standard.bool(forKey: "startOnLogin")
+        startOnAppLaunch = UserDefaults.standard.bool(forKey: "startOnAppLaunch")
 
         loadBookmark(key: "frpcConfigBookmark") { url in
             self.configFilePath = url.path
@@ -123,7 +131,7 @@ class FRPCManager: ObservableObject {
         process?.standardError = pipe
 
         do {
-            // 检查可执行文件是否存在
+            // 检查可执行���件是否存在
             let fileManager = FileManager.default
             guard fileManager.fileExists(atPath: executablePath) else {
                 consoleOutput += "启动FRPC失败: 可执行文件不存在\n"
@@ -182,7 +190,7 @@ class FRPCManager: ObservableObject {
             if granted {
                 UNUserNotificationCenter.current().add(request) { error in
                     if let error = error {
-                        print("发送通知失败: \(error.localizedDescription)")
+                        print("发送��知失败: \(error.localizedDescription)")
                     } else {
                         print("通知已成功发送")
                     }
@@ -335,6 +343,7 @@ struct SettingsView: View {
             }
             Section(header: Text("启动设置")) {
                 Toggle("开机自启动", isOn: $frpcManager.startOnLogin)
+                Toggle("应用启动时自动启动FRPC", isOn: $frpcManager.startOnAppLaunch)
             }
         }
         .navigationTitle("设置")
