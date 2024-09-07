@@ -50,7 +50,7 @@ struct ActionsView: View {
             }
             .disabled(frpcManager.cleanedConsoleOutput.isEmpty)
         }
-        .padding()
+        .padding(EdgeInsets(top: 8, leading: 8, bottom: 0, trailing: 8))
     }
 
     private var logView: some View {
@@ -78,27 +78,10 @@ struct ActionsView: View {
                 scrollView.scrollTo("logEnd", anchor: .bottom)
             })
         }
-        .padding(8.0)
+        .padding(EdgeInsets(top: 0, leading: 8, bottom: 8, trailing: 8))
         .background(Color(.controlBackgroundColor))
-        // .cornerRadius(10)
-        // .shadow(radius: 5)
-
-
-
-////
-
-    //         .frame(height: 400)
-    //         .padding(EdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10))
-    //         .border(Color.gray, width: 1)
-    //     }
-    //     .navigationTitle("Actions")
-    //     .padding()
-    // }
-
-
-///
-
-
+        .cornerRadius(10)
+        .shadow(radius: 5)
     }
 }
 
