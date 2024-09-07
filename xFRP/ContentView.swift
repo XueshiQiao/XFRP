@@ -346,6 +346,7 @@ struct SettingsView: View {
                 Toggle("应用启动时自动启动FRPC", isOn: $frpcManager.startOnAppLaunch)
             }
         }
+        .formStyle(GroupedFormStyle())
         .navigationTitle("设置")
         .padding()
     }
