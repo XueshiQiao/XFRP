@@ -193,6 +193,67 @@ class FRPCManager: ObservableObject {
         return string.replacingOccurrences(of: pattern, with: "", options: .regularExpression)
     }
 
+    func verifyConfig() {
+        guard let configPath = configFilePath, let executablePath = executableFilePath else {
+            consoleOutput += "请先选择配置文件和可执行文件\n"
+            return
+        }
+
+        let verifyProcess = Process()
+        verifyProcess.executableURL = URL(fileURLWithPath: executablePath)
+        verifyProcess.arguments = ["verify", "-c", configPath]
+
+        let pipe = Pipe()
+        verifyProcess.standardOutput = pipe
+        verifyProcess.standardError = pipe
+
+        do {
+            try verifyProcess.run()
+            verifyProcess.waitUntilExit()
+
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            if let output = String(data: data, encoding: .utf8) {
+                DispatchQueue.main.async {
+                    self.consoleOutput += "配置验证结果：\n\(output)\n"
+                }
+            }
+        } catch {
+            DispatchQueue.main.async {
+                self.consoleOutput += "验证配置失败: \(error.localizedDescription)\n"
+            }
+        }
+    }
+
+    func reloadConfig() {
+        guard let configPath = configFilePath, let executablePath = executableFilePath else {
+            consoleOutput += "请先选择配置文件和可执行文件\n"
+            return
+        }
+
+        let reloadProcess = Process()
+        reloadProcess.executableURL = URL(fileURLWithPath: executablePath)
+        reloadProcess.arguments = ["reload", "-c", configPath]
+
+        let pipe = Pipe()
+        reloadProcess.standardOutput = pipe
+        reloadProcess.standardError = pipe
+
+        do {
+            try reloadProcess.run()
+            reloadProcess.waitUntilExit()
+
+            let data = pipe.fileHandleForReading.readDataToEndOfFile()
+            if let output = String(data: data, encoding: .utf8) {
+                DispatchQueue.main.async {
+                    self.consoleOutput += "重新加载配置结果：\n\(output)\n"
+                }
+            }
+        } catch {
+            DispatchQueue.main.async {
+                self.consoleOutput += "重新加载配置失败: \(error.localizedDescription)\n"
+            }
+        }
+    }
 }
 
 struct ContentView: View {
@@ -203,10 +264,10 @@ struct ContentView: View {
         NavigationView {
             List {
                 NavigationLink(destination: ActionsView(frpcManager: frpcManager), tag: 0, selection: Binding<Int?>(get: { selectedTab }, set: { selectedTab = $0 ?? 0 })) {
-                    Label("Action", systemImage: "play.circle")
+                    Label("操作", systemImage: "play.circle")
                 }
                 NavigationLink(destination: SettingsView(frpcManager: frpcManager), tag: 1, selection: Binding<Int?>(get: { selectedTab }, set: { selectedTab = $0 ?? 0 })) {
-                    Label("Settings", systemImage: "gear")
+                    Label("设置", systemImage: "gear")
                 }
             }
             .listStyle(SidebarListStyle())
@@ -254,18 +315,28 @@ struct ActionsView: View {
 
     var body: some View {
         VStack {
-            Button(frpcManager.isRunning ? "停止FRPC" : "启动FRPC") {
-                if frpcManager.isRunning {
-                    frpcManager.stopFRPC()
-                } else {
-                    frpcManager.startFRPC()
+            HStack {
+                Button(frpcManager.isRunning ? "停止FRPC" : "启动FRPC") {
+                    if frpcManager.isRunning {
+                        frpcManager.stopFRPC()
+                    } else {
+                        frpcManager.startFRPC()
+                    }
                 }
+                .padding()
+
+                Button("验证配置") {
+                    frpcManager.verifyConfig()
+                }
+
+                Button("重新加载配置") {
+                    frpcManager.reloadConfig()
+                }
+                .disabled(!frpcManager.isRunning)
             }
-            .padding()
 
             ScrollView {
                 ZStack {
-
                     Text(frpcManager.cleanedConsoleOutput)
                         .font(.system(.body, design: .monospaced))
                         .foregroundStyle(
@@ -279,8 +350,6 @@ struct ActionsView: View {
                         .font(.system(.body, design: .monospaced))
                         .foregroundColor(Color.black.opacity(0.1))
                         .textSelection(.enabled)
-
-
                 }
             }
             .frame(height: 300)
