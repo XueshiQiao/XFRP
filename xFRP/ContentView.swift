@@ -13,7 +13,7 @@ import UserNotifications
 
 class FRPCManager: ObservableObject {
     @Published var isRunning = false
-    @Published var consoleOutput = "" {
+    @Published var consoleOutput = "abc" {
         didSet {
             cleanedConsoleOutput = removeANSIEscapeCodes(from: consoleOutput)
         }
@@ -44,6 +44,7 @@ class FRPCManager: ObservableObject {
         loadBookmark(key: "frpcExecutableBookmark") { url in
             self.executableFilePath = url.path
         }
+        consoleOutput = "\n"
     }
 
     private func loadBookmark(key: String, completion: (URL) -> Void) {
@@ -254,27 +255,46 @@ class FRPCManager: ObservableObject {
             }
         }
     }
+
+    func clearLogs() {
+        DispatchQueue.main.async {
+            self.consoleOutput = ""
+        }
+    }
 }
 
 struct ContentView: View {
     @EnvironmentObject var frpcManager: FRPCManager
-    @State private var selectedTab = 0
+    @State private var selectedTab: Int? = 0
 
     var body: some View {
-        NavigationView {
-            List {
-                NavigationLink(destination: ActionsView(frpcManager: frpcManager), tag: 0, selection: Binding<Int?>(get: { selectedTab }, set: { selectedTab = $0 ?? 0 })) {
-                    Label("操作", systemImage: "play.circle")
-                }
-                NavigationLink(destination: SettingsView(frpcManager: frpcManager), tag: 1, selection: Binding<Int?>(get: { selectedTab }, set: { selectedTab = $0 ?? 0 })) {
-                    Label("设置", systemImage: "gear")
-                }
+        NavigationSplitView {
+            List(selection: $selectedTab) {
+                Label("操作", systemImage: "play.circle")
+                    .tag(0)
+                Label("设置", systemImage: "gear")
+                    .tag(1)
             }
             .listStyle(SidebarListStyle())
             .frame(minWidth: 150)
-
-            Text("请在左侧选择一个选项")
+        } detail: {
+            NavigationStack {
+                Group {
+                    if let selectedTab = selectedTab {
+                        switch selectedTab {
+                        case 0:
+                            ActionsView(frpcManager: frpcManager)
+                        case 1:
+                            SettingsView(frpcManager: frpcManager)
+                        default:
+                            Text("请在左侧选择一个选项")
+                        }
+                    } else {
+                        Text("请在左侧选择一个选项")
+                    }
+                }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
         }
     }
 }
@@ -333,10 +353,14 @@ struct ActionsView: View {
                     frpcManager.reloadConfig()
                 }
                 .disabled(!frpcManager.isRunning)
+
+                Button("清除日志") {
+                    frpcManager.clearLogs()
+                }
             }
 
-            ScrollView {
-                ZStack {
+            ScrollViewReader { scrollView in
+                ScrollView {
                     Text(frpcManager.cleanedConsoleOutput)
                         .font(.system(.body, design: .monospaced))
                         .foregroundStyle(
@@ -346,13 +370,21 @@ struct ActionsView: View {
                                 endPoint: .bottomTrailing
                             )
                         )
-                    Text(frpcManager.cleanedConsoleOutput)
-                        .font(.system(.body, design: .monospaced))
-                        .foregroundColor(Color.black.opacity(0.1))
-                        .textSelection(.enabled)
+                        .overlay(
+                            Text(frpcManager.cleanedConsoleOutput)
+                                .font(.system(.body, design: .monospaced))
+                                .foregroundColor(Color.black.opacity(0.1))
+                                .textSelection(.enabled)
+                        )
+                        .frame(minHeight: 300, alignment: .topLeading)
+                        .id("logEnd")
                 }
+                .onChange(of: frpcManager.cleanedConsoleOutput, initial: true, {
+                    scrollView.scrollTo("logEnd", anchor: .bottom)
+                })
             }
             .frame(height: 300)
+            .padding(EdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10))
             .border(Color.gray, width: 1)
         }
         .navigationTitle("操作")
