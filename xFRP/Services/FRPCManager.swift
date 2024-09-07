@@ -63,7 +63,7 @@ class FRPCManager: ObservableObject {
             self.executableFilePath = url.path
         }
     }
-    
+
     deinit {
         stopFRPC()
     }
@@ -179,7 +179,7 @@ class FRPCManager: ObservableObject {
         isRunning = false
         consoleOutput += "FRPC已停止\n"
     }
-    
+
     func showErrorNotification(str: String) {
         // 发送本地通知
         let content = UNMutableNotificationContent()
@@ -280,6 +280,26 @@ class FRPCManager: ObservableObject {
     func clearLogs() {
         DispatchQueue.main.async {
             self.consoleOutput = ""
+        }
+    }
+
+    func forceKillFRPC() {
+        let task = Process()
+        task.launchPath = "/usr/bin/pkill"
+        task.arguments = ["frpc"]
+
+        do {
+            try task.run()
+            task.waitUntilExit()
+
+            DispatchQueue.main.async {
+                self.isRunning = false
+                self.consoleOutput += "FRPC进程已被强制终止\n"
+            }
+        } catch {
+            DispatchQueue.main.async {
+                self.consoleOutput += "强制终止FRPC失败: \(error.localizedDescription)\n"
+            }
         }
     }
 }

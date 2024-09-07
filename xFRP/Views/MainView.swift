@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  MainView.swift
 //  xFRP
 //
 //  Created by Xueshi Qiao on 9/7/24.
@@ -24,7 +24,7 @@ struct MainView: View {
                     .tag(1)
             }
             .listStyle(SidebarListStyle())
-            .frame(minWidth: 150)
+            .frame(minWidth: 200)  // 增加最小宽度
         } detail: {
             NavigationStack {
                 Group {
@@ -44,73 +44,12 @@ struct MainView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-    }
-}
-
-struct ActionsView: View {
-    @ObservedObject var frpcManager: FRPCManager
-
-    var body: some View {
-        VStack {
-            HStack {
-                Button(frpcManager.isRunning ? "停止FRPC" : "启动FRPC") {
-                    if frpcManager.isRunning {
-                        frpcManager.stopFRPC()
-                    } else {
-                        frpcManager.startFRPC()
-                    }
-                }
-                .padding()
-
-                Button("验证配置") {
-                    frpcManager.verifyConfig()
-                }
-
-                Button("重新加载配置") {
-                    frpcManager.reloadConfig()
-                }
-                .disabled(!frpcManager.isRunning)
-
-                Button("清除日志") {
-                    frpcManager.clearLogs()
-                }
-            }
-
-            ScrollViewReader { scrollView in
-                ScrollView {
-                    Text(frpcManager.cleanedConsoleOutput)
-                        .font(.system(.body, design: .monospaced))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.blue, .green, .yellow, .red],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .overlay(
-                            Text(frpcManager.cleanedConsoleOutput)
-                                .font(.system(.body, design: .monospaced))
-                                .foregroundColor(Color.black.opacity(0.1))
-                                .textSelection(.enabled)
-                        )
-                        .frame(minHeight: 300, alignment: .topLeading)
-                        .id("logEnd")
-                }
-                .onChange(of: frpcManager.cleanedConsoleOutput, initial: true, {
-                    scrollView.scrollTo("logEnd", anchor: .bottom)
-                })
-            }
-            .frame(height: 300)
-            .padding(EdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10))
-            .border(Color.gray, width: 1)
-        }
-        .navigationTitle("操作")
-        .padding()
+        .navigationSplitViewStyle(.prominentDetail)  // 使用更突出的分割视图样式
     }
 }
 
 // 预览代码
-struct ContentView_Previews: PreviewProvider {
+struct MainView_Previews: PreviewProvider {
     static var previews: some View {
         MainView()
     }
