@@ -13,7 +13,13 @@ import UserNotifications
 
 class FRPCManager: ObservableObject {
     @Published var isRunning = false
-    @Published var consoleOutput = ""
+    @Published var consoleOutput = "" {
+        didSet {
+            cleanedConsoleOutput = removeANSIEscapeCodes(from: consoleOutput)
+        }
+    }
+    @Published var cleanedConsoleOutput = ""
+
     @Published var configFilePath: String? {
         didSet {
             if let path = configFilePath {
@@ -181,6 +187,12 @@ class FRPCManager: ObservableObject {
             NSApp.requestUserAttention(.criticalRequest)
         }
     }
+
+    private func removeANSIEscapeCodes(from string: String) -> String {
+        let pattern = "\u{001B}\\[[0-9;]*[mGK]"
+        return string.replacingOccurrences(of: pattern, with: "", options: .regularExpression)
+    }
+
 }
 
 struct ContentView: View {
@@ -190,11 +202,11 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             List {
-                NavigationLink(destination: SettingsView(frpcManager: frpcManager), tag: 0, selection: Binding<Int?>(get: { selectedTab }, set: { selectedTab = $0 ?? 0 })) {
-                    Label("设置", systemImage: "gear")
+                NavigationLink(destination: ActionsView(frpcManager: frpcManager), tag: 0, selection: Binding<Int?>(get: { selectedTab }, set: { selectedTab = $0 ?? 0 })) {
+                    Label("Action", systemImage: "play.circle")
                 }
-                NavigationLink(destination: ActionsView(frpcManager: frpcManager), tag: 1, selection: Binding<Int?>(get: { selectedTab }, set: { selectedTab = $0 ?? 0 })) {
-                    Label("操作", systemImage: "play.circle")
+                NavigationLink(destination: SettingsView(frpcManager: frpcManager), tag: 1, selection: Binding<Int?>(get: { selectedTab }, set: { selectedTab = $0 ?? 0 })) {
+                    Label("Settings", systemImage: "gear")
                 }
             }
             .listStyle(SidebarListStyle())
@@ -252,26 +264,24 @@ struct ActionsView: View {
             .padding()
 
             ScrollView {
-                Text(frpcManager.consoleOutput)
-                    .font(.system(.body, design: .monospaced))
-                    .textSelection(.enabled)
-                    .foregroundColor(.primary)
-                    .background(
-                        Text(frpcManager.consoleOutput)
-                            .font(.system(.body, design: .monospaced))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [.blue, .green, .yellow, .red],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
+                ZStack {
+
+                    Text(frpcManager.cleanedConsoleOutput)
+                        .font(.system(.body, design: .monospaced))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [.blue, .green, .yellow, .red],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
                             )
-                            .mask(
-                                Text(frpcManager.consoleOutput)
-                                    .font(.system(.body, design: .monospaced))
-                                    .textSelection(.enabled)
-                            )
-                    )
+                        )
+                    Text(frpcManager.cleanedConsoleOutput)
+                        .font(.system(.body, design: .monospaced))
+                        .foregroundColor(Color.black.opacity(0.1))
+                        .textSelection(.enabled)
+
+
+                }
             }
             .frame(height: 300)
             .border(Color.gray, width: 1)
