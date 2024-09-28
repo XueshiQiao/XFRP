@@ -19,6 +19,7 @@ struct DockerImageTagSearchView: View {
     var body: some View {
         VStack {
             HStack {
+                Image(systemName: "tag.circle")
                 TextField("Enter Docker image name, then press 'Enter'", text: $searchText)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .focused($isSearchFieldFocused)
@@ -33,7 +34,7 @@ struct DockerImageTagSearchView: View {
             
             ZStack {
                 Table(searchResults) {
-                    TableColumn("Name", value: \.name)
+                    TableColumn("Tag", value: \.name)
                         .width(ideal: 200)
                     TableColumn("Last Updated", value: \.formattedLastUpdated)
                         .width(ideal: 150)
@@ -62,8 +63,9 @@ struct DockerImageTagSearchView: View {
             DispatchQueue.main.async {
                 self.isSearchFieldFocused = true
             }
-            if !self.imageNameForSearching.isEmpty {
-                self.searchText = self.imageNameForSearching
+        }.onChange(of: self.imageNameForSearching) { oldValue, newValue in
+            if !newValue.isEmpty {
+                self.searchText = newValue
                 searchDockerImage()
             }
         }

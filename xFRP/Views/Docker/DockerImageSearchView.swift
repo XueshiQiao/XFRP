@@ -40,7 +40,7 @@ struct DockerImageSearchView: View {
             ZStack {
                 // selection bind the id of the model coresponding to current row
                 Table(searchResults, selection: $selection_image_name) {
-                    TableColumn("Name") { image in
+                    TableColumn("Image Name") { image in
                         HStack {
                             Text("\(image.name)")
                             if image.isOfficial {

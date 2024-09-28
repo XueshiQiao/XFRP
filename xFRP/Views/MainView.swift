@@ -14,20 +14,12 @@ import UserNotifications
 enum Tab: Int {
     case FRPCAction = 0;
     case FRPCSettings = 1;
-    case DockerImageSearch = 2;
-    case DockerImageTagSearch = 3;
+    case DockerImageMixed = 2;
 }
 
 struct MainView: View {
     @EnvironmentObject var frpcManager: FRPCManager
     @State private var selectedTab: Int = 0
-
-    @State private var tagSearchText = ""
-    @State private var imageSearchText = ""
-    @State private var tagSearchResults: [ImageTag] = []
-    @State private var imageSearchResults: [DockerImage] = []
-
-    @State private var imageNameForSearching: String = ""
 
     var body: some View {
         NavigationSplitView {
@@ -39,10 +31,7 @@ struct MainView: View {
                     .tag(Tab.FRPCSettings.rawValue)
                 
                 Label(L10n.MainView.dockerImage, systemImage: "sparkle.magnifyingglass").font(.headline)
-                    .tag(Tab.DockerImageSearch.rawValue)
-                
-                Label(L10n.MainView.dockerImageTag, systemImage: "tag.circle").font(.headline)
-                    .tag(Tab.DockerImageTagSearch.rawValue)
+                    .tag(Tab.DockerImageMixed.rawValue)
             }
             .listStyle(SidebarListStyle())
             .frame(minWidth: 180, idealWidth: 180)
@@ -54,10 +43,8 @@ struct MainView: View {
                         ActionsView(frpcManager: frpcManager)
                     case Tab.FRPCSettings.rawValue:
                         SettingsView(frpcManager: frpcManager)
-                    case Tab.DockerImageSearch.rawValue:
-                        DockerImageSearchView(searchText: $imageSearchText, searchResults: $imageSearchResults, onImageSelected: searchTagWithImage)
-                    case Tab.DockerImageTagSearch.rawValue:
-                        DockerImageTagSearchView(searchText: $tagSearchText, searchResults: $tagSearchResults, imageNameForSearching: $imageNameForSearching)
+                    case Tab.DockerImageMixed.rawValue:
+                        DockerImageView()
                     default:
                         Text("error")
                     }
@@ -67,10 +54,6 @@ struct MainView: View {
         }
     }
     
-    func searchTagWithImage(_ imageName: String) {
-        selectedTab = Tab.DockerImageTagSearch.rawValue
-        imageNameForSearching = imageName
-    }
 
 }
 
