@@ -1,0 +1,32 @@
+/*
+  Localizable.strings
+  xFRP
+
+  Created by Xueshi Qiao on 9/7/24.
+
+*/
+"common.ok" = "OK";
+"common.cancel" = "Cancel";
+
+"actions.start" = "开启 FRPC";
+"actions.stop" = "停止 FRPC";
+"actions.verify" = "验证配置文件";
+"actions.reload" = "刷新配置文件";
+"actions.forceStop" = "强杀 frpc 进程";
+"actions.clearLogs" = "清空日志";
+
+"settings.title" = "Settings";
+"settings.configFile" = "FRPC Config File";
+"settings.executableFile" = "FRPC Executable File Path";
+"settings.choose" = "Choose";
+"settings.startOnLogin" = "Start on login";
+"settings.autoStartOnLaunch" = "Auto start FRPC on app launch";
+"settings.language" = "语言";
+"settings.chooseLanguage" = "选择语言";
+"settings.startupSettings" = "启动设置";
+
+"mainView.actions" = "Actions";
+"mainView.settings" = "Settings";
+"mainView.dockerImage" = "Docker Image";
+"mainView.dockerImageTag" = "Docker Image Tag";
+"mainView.selectOption" = "Please select an option on the left";

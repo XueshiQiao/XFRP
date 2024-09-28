@@ -9,36 +9,44 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var frpcManager: FRPCManager
+    @AppStorage("AppLanguage") private var language = "en"
 
     var body: some View {
         Form {
-            Section(header: Text("frpc config file")) {
+            Section(header: Text(L10n.Settings.configFile)) {
                 HStack {
                     Text(frpcManager.configFilePath ?? "-")
                         .truncationMode(.middle)
                     Spacer()
-                    Button("Choose") {
+                    Button(L10n.Settings.choose) {
                         frpcManager.selectConfigFile()
                     }
                 }
             }
-            Section(header: Text("frpc executable file path")) {
+            Section(header: Text(L10n.Settings.executableFile)) {
                 HStack {
                     Text(frpcManager.executableFilePath ?? "-")
                         .truncationMode(.middle)
                     Spacer()
-                    Button("Choose") {
+                    Button(L10n.Settings.choose) {
                         frpcManager.selectExecutableFile()
                     }
                 }
             }
-            Section(header: Text("Startup settings")) {
-                Toggle("Start on login", isOn: $frpcManager.startOnLogin)
-                Toggle("Auto start frpc on app launch", isOn: $frpcManager.startOnAppLaunch)
+            Section(header: Text(L10n.Settings.startupSettings)) {
+                Toggle(L10n.Settings.startOnLogin, isOn: $frpcManager.startOnLogin)
+                Toggle(L10n.Settings.autoStartOnLaunch, isOn: $frpcManager.startOnAppLaunch)
+            }
+            Section(header: Text(L10n.Settings.language)) {
+                Picker(L10n.Settings.chooseLanguage, selection: $language) {
+                    Text("English").tag("en")
+                    Text("中文").tag("zh-Hans")
+                }
+                .pickerStyle(SegmentedPickerStyle())
             }
         }
         .formStyle(GroupedFormStyle())
-        .navigationTitle("Settings")
+        .navigationTitle(L10n.Settings.title)
         .padding()
     }
 }

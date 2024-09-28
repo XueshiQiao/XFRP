@@ -125,11 +125,29 @@ class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 @main
 struct xFRPApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @State private var language = UserDefaults.standard.string(forKey: "AppLanguage") ?? "en"
 
     var body: some Scene {
         WindowGroup {
             MainView()
                 .environmentObject(appDelegate.frpcManager)
+                .environment(\.locale, Locale(identifier: language))
         }
+        .commands {
+            CommandMenu("Language") {
+                Button("English") {
+                    changeLanguage(to: "en")
+                }
+                Button("中文") {
+                    changeLanguage(to: "zh-Hans")
+                }
+            }
+        }
+    }
+
+    private func changeLanguage(to newLanguage: String) {
+        language = newLanguage
+        UserDefaults.standard.set(newLanguage, forKey: "AppLanguage")
+        UserDefaults.standard.synchronize()
     }
 }

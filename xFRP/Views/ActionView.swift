@@ -26,26 +26,26 @@ struct ActionsView: View {
 
     private var actionButtons: some View {
         HStack(spacing: 15) {
-            ActionButton(title: frpcManager.isRunning ? "停止FRPC" : "启动FRPC",
+            ActionButton(title: frpcManager.isRunning ? L10n.Actions.stop : L10n.Actions.start,
                          icon: frpcManager.isRunning ? "stop.circle" : "play.circle",
                          color: frpcManager.isRunning ? .red : .green) {
                 frpcManager.isRunning ? frpcManager.stopFRPC() : frpcManager.startFRPC()
             }
 
-            ActionButton(title: "验证配置", icon: "checkmark.shield", color: .blue) {
+            ActionButton(title: L10n.Actions.verify, icon: "checkmark.shield", color: .blue) {
                 frpcManager.verifyConfig()
             }
 
-            ActionButton(title: "重载配置", icon: "arrow.clockwise", color: .orange) {
+            ActionButton(title: L10n.Actions.reload, icon: "arrow.clockwise", color: .orange) {
                 frpcManager.reloadConfig()
             }
             .disabled(!frpcManager.isRunning)
 
-            ActionButton(title: "强制终止", icon: "xmark.octagon", color: .red) {
+            ActionButton(title: L10n.Actions.forceStop, icon: "xmark.octagon", color: .red) {
                 frpcManager.forceKillFRPC()
             }
 
-            ActionButton(title: "清除日志", icon: "trash", color: .gray) {
+            ActionButton(title: L10n.Actions.clearLogs, icon: "trash", color: .gray) {
                 frpcManager.clearLogs()
             }
             .disabled(frpcManager.cleanedConsoleOutput.isEmpty)
@@ -61,8 +61,8 @@ struct ActionsView: View {
                     .foregroundStyle(
                         LinearGradient(
                             colors: [.blue, .green, .yellow, .red],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
+                            startPoint: .leading,
+                            endPoint: .trailing
                         )
                     )
                     .overlay(

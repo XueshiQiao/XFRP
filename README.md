@@ -1,7 +1,7 @@
 # XFRP
 A macOS frpc client written in SwiftUI
 
-# screenshots
+# Screenshots
 
 ## Settings
 

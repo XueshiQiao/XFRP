@@ -174,7 +174,7 @@ class FRPCManager: ObservableObject {
         }
     }
 
-    func stopFRPC() {
+func stopFRPC() {
         process?.terminate()
         isRunning = false
         consoleOutput += "FRPC已停止\n"
