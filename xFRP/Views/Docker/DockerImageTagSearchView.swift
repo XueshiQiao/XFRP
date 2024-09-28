@@ -15,50 +15,61 @@ struct DockerImageTagSearchView: View {
     @Binding var imageNameForSearching: String
     @State private var isLoading = false
     @FocusState private var isSearchFieldFocused: Bool
+    
+    @State private var copiedTag: String?
+    @State private var showingToast = false
+    @State private var toastMessage = ""
 
     var body: some View {
-        VStack {
-            HStack {
-                Image(systemName: "tag.circle")
-                TextField("Enter Docker image name, then press 'Enter'", text: $searchText)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .focused($isSearchFieldFocused)
-                    .onSubmit {
+        ZStack {
+            VStack {
+                HStack {
+                    Image(systemName: "tag.circle")
+                    TextField("Enter Docker image name, then press 'Enter'", text: $searchText)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .focused($isSearchFieldFocused)
+                        .onSubmit {
+                            searchDockerImage()
+                        }
+                    Button("Search") {
                         searchDockerImage()
                     }
-                Button("Search") {
-                    searchDockerImage()
                 }
-            }
-            .padding()
-            
-            ZStack {
-                Table(searchResults) {
-                    TableColumn("Tag", value: \.name)
-                        .width(ideal: 200)
-                    TableColumn("Last Updated", value: \.formattedLastUpdated)
-                        .width(ideal: 150)
-                    TableColumn("Size", value: \.formattedFullSize)
-                        .width(ideal: 100)
-                }
-                .tableStyle(.bordered)
-                .alternatingRowBackgrounds()
+                .padding()
                 
-                if isLoading {
-                    VStack {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle())
-                            .scaleEffect(1.5)
-                        Text("Loading...")
-                            .padding(.top, 10)
+                ZStack {
+                    Table(searchResults, selection: $copiedTag) {
+                        TableColumn("Tag", value: \.name)
+                            .width(ideal: 200)
+                        TableColumn("Last Updated", value: \.formattedLastUpdated)
+                            .width(ideal: 150)
+                        TableColumn("Size", value: \.formattedFullSize)
+                            .width(ideal: 100)
                     }
-                    .frame(width: 100, height: 100)
-                    .background(Color.secondary.colorInvert().opacity(0.8))
-                    .cornerRadius(10)
-                    .shadow(radius: 10)
+                    .tableStyle(.bordered)
+                    .alternatingRowBackgrounds()
+                    .onChange(of: self.copiedTag, { oldValue, newValue in
+                        if let tag = newValue {
+                            copyToClipboard(imageName: searchText, tag: tag)
+                        }
+                    })
+                    
+                    if isLoading {
+                        VStack {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle())
+                                .scaleEffect(1.5)
+                            Text("Loading...")
+                                .padding(.top, 10)
+                        }
+                        .frame(width: 100, height: 100)
+                        .background(Color.secondary.colorInvert().opacity(0.8))
+                        .cornerRadius(10)
+                        .shadow(radius: 10)
+                    }
                 }
             }
-
+            ToastView(message: toastMessage, isShowing: $showingToast)
         }.onAppear {
             DispatchQueue.main.async {
                 self.isSearchFieldFocused = true
@@ -70,6 +81,22 @@ struct DockerImageTagSearchView: View {
             }
         }
     }
+    
+    func copyToClipboard(imageName: String, tag: String) {
+        let fullImageName = "\(imageName):\(tag)"
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(fullImageName, forType: .string)
+        
+        toastMessage = "Copied \(fullImageName) to clipboard"
+        showingToast = true
+        
+        // Reset the selection
+        DispatchQueue.main.async {
+            self.copiedTag = nil
+        }
+    }
+
     
     func searchDockerImage() {
         guard !searchText.isEmpty else { return }
@@ -111,6 +138,35 @@ struct DockerImageTagSearchView: View {
         return repoName.contains("/")
     }
 
+}
+
+
+struct ToastView: View {
+    let message: String
+    @Binding var isShowing: Bool
+    
+    var body: some View {
+        VStack {
+            Spacer()
+            if isShowing {
+                Text(message)
+                    .padding()
+                    .background(Color.black.opacity(0.7))
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            withAnimation {
+                                isShowing = false
+                            }
+                        }
+                    }
+            }
+        }
+        .animation(.easeInOut, value: isShowing)
+        .padding(.bottom)
+    }
 }
 
 

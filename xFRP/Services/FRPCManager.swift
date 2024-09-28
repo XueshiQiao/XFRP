@@ -16,6 +16,7 @@ class FRPCManager: ObservableObject {
     @Published var isRunning = false
     @Published var consoleOutput = "abc" {
         didSet {
+            
             cleanedConsoleOutput = removeANSIEscapeCodes(from: consoleOutput)
         }
     }
@@ -174,7 +175,7 @@ class FRPCManager: ObservableObject {
         }
     }
 
-func stopFRPC() {
+    func stopFRPC() {
         process?.terminate()
         isRunning = false
         consoleOutput += "FRPC已停止\n"

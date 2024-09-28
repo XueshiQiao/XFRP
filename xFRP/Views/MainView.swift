@@ -24,13 +24,13 @@ struct MainView: View {
     var body: some View {
         NavigationSplitView {
             List(selection: $selectedTab) {
-                Label(L10n.MainView.actions, systemImage: "play.circle").font(.headline)
+                Label(L10n.MainView.actions, systemImage: "play.circle").font(.title3)
                     .tag(Tab.FRPCAction.rawValue)
                 
-                Label(L10n.MainView.settings, systemImage: "gear").font(.headline)
+                Label(L10n.MainView.settings, systemImage: "gear").font(.title3)
                     .tag(Tab.FRPCSettings.rawValue)
                 
-                Label(L10n.MainView.dockerImage, systemImage: "sparkle.magnifyingglass").font(.headline)
+                Label(L10n.MainView.dockerImage, systemImage: "sparkle.magnifyingglass").font(.title3)
                     .tag(Tab.DockerImageMixed.rawValue)
             }
             .listStyle(SidebarListStyle())

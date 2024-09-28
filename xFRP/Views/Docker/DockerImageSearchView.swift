@@ -23,7 +23,7 @@ struct DockerImageSearchView: View {
         VStack {
             HStack {
                 Image(systemName: "cube")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.secondary).imageScale(.large)
                 TextField("Enter Docker image name to search", text: $searchText)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .focused($isSearchFieldFocused)
